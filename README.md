@@ -5,6 +5,7 @@ This repository contains code implementing the $e$-d-BH, $e$-d-Bonferroni, and $
 Run the following commands from the root directory before running any Python scripts in this repository:
 ```bash
 export PYTHONPATH=./src
-pip install -r requirements.txt
+conda create -n <envname> --file requirements.txt
+conda activate <envname>
 ```
-This sets the `PYTHONPATH` for relative imports and installs all required packages.
+This sets the `PYTHONPATH` for relative imports and installs all required packages into a fresh conda environment.
