@@ -42,7 +42,7 @@ def get_error_rate(
                 for t in range(
                     changepoint if changepoint is not None else timeseries_length
                 ):
-                    fdr[n, t] = len(declarations[t]) / n_streams
+                    fdr[n, t] = len(declarations[t]) > 0
 
             return np.mean(fdr, axis=0)
 
