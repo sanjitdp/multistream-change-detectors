@@ -24,18 +24,23 @@ def get_e_detector(
     problem_type: ProblemType,
     detector_type: DetectorType = DetectorType.cusum,
     timeseries_length=1000,
-    changepoint=200,
+    changepoint: int | List[int] = 200,
     n_streams=50,
     signal_strength=1,
 ):
+    if isinstance(changepoint, int) or changepoint is None:
+        changepoint = [changepoint] * n_streams
+
     match problem_type:
         case ProblemType.independence:
             x = np.random.normal(size=(n_streams, timeseries_length, 1))
 
             eps = np.random.normal(size=(n_streams, timeseries_length, 1))
             mask = np.zeros((n_streams, timeseries_length, 1))
-            if changepoint is not None:
-                mask[:, changepoint:] = 0.5
+            for k in range(n_streams):
+                if changepoint[k] is not None:
+                    mask[k, changepoint[k] :, :] = 0.5
+
             y = mask * x + (1 - mask) * eps
 
             e_detector_temp = np.ones((n_streams, timeseries_length // 2))
@@ -68,8 +73,9 @@ def get_e_detector(
 
         case ProblemType.symmetry:
             x = np.random.normal(size=[n_streams, timeseries_length])
-            if changepoint is not None:
-                x[:, changepoint:] = x[:, changepoint:] + 1
+            for k in range(n_streams):
+                if changepoint[k] is not None:
+                    x[k, changepoint[k] :] = x[k, changepoint[k] :] + 1
             e_processes = np.zeros((n_streams, timeseries_length))
             e_detector = np.zeros((n_streams, timeseries_length))
 
@@ -90,8 +96,9 @@ def get_e_detector(
             e_detector = np.ones((n_streams, timeseries_length))
 
             x = np.random.normal(size=(n_streams, timeseries_length)) - signal_strength
-            if changepoint is not None:
-                x[:, changepoint:] += 2 * signal_strength
+            for k in range(n_streams):
+                if changepoint[k] is not None:
+                    x[k, changepoint[k] :] += 2 * signal_strength
 
             for t in range(timeseries_length - 1):
                 likelihood_ratio = np.exp(

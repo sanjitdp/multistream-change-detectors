@@ -21,11 +21,13 @@ def get_error_rate(
     algorithm: MultiStreamAlgorithm,
     n_sims=100,
     timeseries_length=1000,
-    changepoint=200,
+    changepoint: int | List[int] = 200,
     n_streams=50,
     alpha: float | List[float] = 0.001,
     signal_strength=1,
 ):
+    if isinstance(changepoint, int) or changepoint is None:
+        changepoint = [changepoint] * n_streams
     match error_type:
         case ErrorType.fdr:
             fdr = np.zeros((n_sims, timeseries_length))
@@ -39,10 +41,12 @@ def get_error_rate(
                     signal_strength,
                 )
                 declarations = get_declarations(e_detector, algorithm, alpha)
-                for t in range(
-                    changepoint if changepoint is not None else timeseries_length
-                ):
-                    fdr[n, t] = len(declarations[t]) > 0
+                for t in range(timeseries_length):
+                    false_declared = sum(
+                        changepoint[k] is None or changepoint[k] > t
+                        for k in declarations[t]
+                    )
+                    fdr[n, t] = false_declared / max(1, len(declarations[t]))
 
             return np.mean(fdr, axis=0)
 
@@ -59,10 +63,11 @@ def get_error_rate(
                     signal_strength,
                 )
                 declarations = get_declarations(e_detector, algorithm, alpha)
-                for t in range(
-                    changepoint if changepoint is not None else timeseries_length
-                ):
-                    fwer[n, t] = len(declarations[t]) > 0
+                for t in range(timeseries_length):
+                    fwer[n, t] = any(
+                        changepoint[k] is None or changepoint[k] > t
+                        for k in declarations[t]
+                    )
 
             return np.mean(fwer, axis=0)
 
@@ -78,10 +83,11 @@ def get_error_rate(
                     n_streams,
                 )
                 declarations = get_declarations(e_detector, algorithm, alpha)
-                for t in range(
-                    changepoint if changepoint is not None else timeseries_length
-                ):
-                    pfer[n, t] = len(declarations[t])
+                for t in range(timeseries_length):
+                    pfer[n, t] = sum(
+                        changepoint[k] is None or changepoint[k] > t
+                        for k in declarations[t]
+                    )
 
             return np.mean(pfer, axis=0)
 
@@ -91,7 +97,7 @@ def get_mean_detection_curve(
     detector_type: DetectorType,
     algorithm: MultiStreamAlgorithm,
     timeseries_length=1000,
-    changepoint=200,
+    changepoint: int | List[int] = 200,
     n_streams=50,
     alpha: float | List[float] = 0.001,
     n_sims=100,
