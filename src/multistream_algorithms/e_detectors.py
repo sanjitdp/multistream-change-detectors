@@ -7,7 +7,8 @@ import numpy as np
 from tqdm import tqdm
 
 ProblemType = Enum(
-    "ProblemType", zip(["independence", "symmetry", "mean_change"], range(3))
+    "ProblemType",
+    zip(["independence", "symmetry", "mean_change", "conformal"], range(4)),
 )
 
 DetectorType = Enum(
@@ -114,6 +115,38 @@ def get_e_detector(
                     )
                 elif detector_type == DetectorType.sr:
                     e_detector[:, t + 1] = likelihood_ratio * (e_detector[:, t] + 1)
+
+            return e_detector
+
+        case ProblemType.conformal:
+            x = np.random.normal(size=(n_streams, timeseries_length))
+            for k in range(n_streams):
+                if changepoint[k] is not None:
+                    x[k, changepoint[k] :] += 1
+
+            betting_function = lambda z: 1 / (2 * np.sqrt(z))
+
+            e_detector = np.zeros((n_streams, timeseries_length))
+            nonconformity_scores = np.zeros((n_streams, timeseries_length))
+
+            e_detector[:, 0] = np.random.uniform(0, 1, n_streams)
+
+            for t in range(1, timeseries_length):
+                for k in range(n_streams):
+                    nonconformity_scores[k, t] = x[k, t] - np.mean(x[k, : (t + 1)])
+                    e_detector[k, t] = (e_detector[k, t - 1] + 1) * betting_function(
+                        (
+                            np.sum(
+                                nonconformity_scores[k, :t] > nonconformity_scores[k, t]
+                            )
+                            + np.random.uniform(0, 1)
+                            * np.sum(
+                                nonconformity_scores[k, : (t + 1)]
+                                == nonconformity_scores[k, t]
+                            )
+                        )
+                        / (t + 1)
+                    )
 
             return e_detector
 

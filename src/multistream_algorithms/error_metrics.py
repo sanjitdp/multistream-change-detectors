@@ -95,7 +95,7 @@ def get_error_rate(
 def get_mean_detection_curve(
     problem_type: ProblemType,
     detector_type: DetectorType,
-    algorithm: MultiStreamAlgorithm,
+    algorithms: List[MultiStreamAlgorithm],
     timeseries_length=1000,
     changepoint: int | List[int] = 200,
     n_streams=50,
@@ -103,19 +103,23 @@ def get_mean_detection_curve(
     n_sims=100,
     signal_strength=1,
 ):
-    detection_curve = np.zeros((n_sims, timeseries_length))
+    detection_curve = np.zeros((n_sims, len(algorithms), timeseries_length))
+
     for n in tqdm(range(n_sims)):
-        e_detector = get_e_detector(
-            problem_type,
-            detector_type,
-            timeseries_length,
-            changepoint,
-            n_streams,
-            signal_strength,
-        )
-        declarations = get_declarations(e_detector, algorithm, alpha)
-        detection_curve[n, :] = np.array(
-            [len(declarations[i]) for i in range(timeseries_length)]
-        )
+        for a in range(len(algorithms)):
+            e_detector = get_e_detector(
+                problem_type,
+                detector_type,
+                timeseries_length,
+                changepoint,
+                n_streams,
+                signal_strength,
+            )
+
+            declarations = get_declarations(e_detector, algorithms[a], alpha)
+
+            detection_curve[n, a, :] = np.array(
+                [len(declarations[i]) for i in range(timeseries_length)]
+            )
 
     return np.mean(detection_curve, axis=0)
