@@ -57,7 +57,7 @@ identification experiments. The null-error table uses LaTeX placement `[H]`
 and requires the `float` package. Generated narrative fragments are working
 notes; the edited manuscript supplies the final prose and captions.
 
-The scripts create outputs in `results/`. This directory starts empty; run
+The scripts create an ignored `results/` directory as needed; run
 the simulation sequence above before using the table and figure scripts.
 The file descriptions below document those outputs and the study protocol.
 The paper's original outcomes and source snapshots remain in the manuscript

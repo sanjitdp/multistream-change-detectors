@@ -751,6 +751,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--summarize-only", action="store_true")
     args = parser.parse_args()
+    OUT.mkdir(parents=True, exist_ok=True)
     checks()
     if args.summarize_only:
         summary, curves = read_csv("diverse_summary.csv"), read_csv(

@@ -1,5 +1,4 @@
 __pycache__/
 .matplotlib/
-data/**/*.zip
-data/**/*.dat
-results/.matplotlib*/
+/data/
+/results/

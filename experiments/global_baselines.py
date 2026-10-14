@@ -657,6 +657,7 @@ def main():
     parser.add_argument("--tables-only", action="store_true")
     parser.add_argument("--reuse-calibration", action="store_true")
     args = parser.parse_args()
+    OUT.mkdir(parents=True, exist_ok=True)
     if args.tables_only:
         write_table()
         return

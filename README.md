@@ -49,6 +49,8 @@ python experiments/paper_tables.py
 ```
 
 Full simulation runs and validation commands write to `experiments/results/`.
+Generated results, downloaded data, and plots are ignored by Git. The notebook
+is stored with its outputs cleared.
 The optional public sensor analysis is documented separately in the experiment
 README; it is exploratory and is not part of the paper's empirical validation.
 
