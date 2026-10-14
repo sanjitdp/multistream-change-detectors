@@ -1,0 +1,47 @@
+External global-detection comparison, frozen before simulation (2026-10-06)
+
+This adds external methods to the existing independent-Gaussian ARL study.
+K=50, target global-null ARL=1000. Alternatives: means .4 or .75 in the
+first 5 or 25 streams beginning at observation 101; variance one; horizon400.
+All four alternatives use 2000 runs. Seed50101/50102 for .4 sparse/dense,
+50201/50202 for .75 sparse/dense exactly reproduces the existing observations.
+Old BH, Bonferroni, parallel CUSUM and Sum-CUSUM results are retained from
+the saved paired observations, without refitting them. Both BH and Bonferroni
+are labeled ours. Their likelihood increments use the true shift.
+
+Xie--Siegmund (2013), T2, equations3.5--3.7:
+max over lengths1,...,min(t,199) of sum over k of
+log[1-p0+p0 exp((positive standardized window sum)^2/2)], p0=.1.
+The window restriction1<=length<200 and p0=.1 follow their numerical setup.
+Post-change means and affected subset are not supplied to this method.
+Primary source: https://arxiv.org/pdf/1207.2386
+
+Chan (2017), transformed CUSUM, equations5.1--5.3:
+R_k,t=max(0,R_k,t-1+mu0 X_k,t-mu0^2/2), mu0=1;
+sum_k log[1+p0(lambda_M exp(R_k,t/2)-1)], p0=.1, lambda_M=.64.
+These are published numerical choices; they are fixed across alternatives.
+Primary source: https://arxiv.org/pdf/1506.08504
+
+Both methods stop at their first global statistic threshold crossing. Neither
+is assigned a stream-identification set. Separate independent null training
+(400 runs, seed73100) fits each threshold to empirical ARL1000. Calibration
+simulates paths until a prespecified upper threshold is crossed and stores
+record maxima so lower candidate thresholds can be evaluated on the same
+uncensored paths. Upper brackets may be enlarged using training data only.
+Starting brackets may use published analytic ARL approximations or a small
+timing pilot; all pilot/training outcomes are recorded. Independent null
+validation (750 runs, seed74100) continues until every alarm occurs; no
+validation-based threshold adjustment. Its actual ARL, standard error and
+longest run are reported, even if the ARL differs from1000.
+
+Metrics for all methods: pre-change alarm probability; global detection delay
+conditional on no alarm before101; conditional sample size and nondetection
+proportion. Delays count observation101 as1. Runs without alarm by400 receive
+time401, thus delay301; they are retained. Marginal Monte Carlo standard errors
+use independent runs. Existing comparator validation uses1500 runs; new methods
+use750. Every method/configuration remains in results regardless of performance.
+
+Performance-only timing precedes large runs. C++ is permitted for the scan.
+Numerical verification compares compiled statistics with direct Python window
+calculations and checks exact reproduction of saved old first-alarm times.
+No manuscript modifications are part of this isolated implementation.

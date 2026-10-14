@@ -1,0 +1,82 @@
+Prespecified diverse simulation design
+Recorded before generating simulation outcomes (2026-10-06).
+
+Purpose: examine stream-level identification/error tradeoffs with valid inputs
+outside independent Gaussian mean shifts, and their dependence on K/sparsity.
+No threshold tuning or removal of prespecified configurations is permitted.
+
+Common settings
+- 1500 independent replications per configuration; monitoring times 1,...,400.
+- e-d-BH (ours), Parallel SR (e-d-Bonferroni), Parallel CUSUM.
+- SR R_t=(1+R_(t-1))*L_t; restart-CUSUM C_t=max(1,C_(t-1))*L_t.
+- BH step-up threshold K/(r*.001); parallel charts threshold K/.001.
+- These are different nominal EOP targets (FDR for BH, PFER for parallel charts),
+  not equal nominal ordinary-FDR levels or empirically matched ARLs.
+- Plot ordinary measured FDR and TDR for all methods on the same definitions.
+- No stream is removed; declarations are current, not accumulated.
+- Save FDR, PFER, FWER, TDR, probability of declaring 80%/all changed streams
+  at each monitoring time multiple of5 and at150,200,250,300,400.
+- Save per-stream restricted detection delays and selected bounded stopping
+  ratios for audit, but do NOT plot ratios or treat these as an EOP estimate.
+- Monte Carlo SE uses independent replications, with within-replication streams
+  treated as a cluster. Display pointwise +/-1.96SE, clipped to[0,1] for rates.
+
+Experiment A: symmetric heavy tails and cross-stream dependence
+- K=100; Z_tk and U_t iid Student t with3 degrees of freedom, divided bysqrt3.
+- X_tk=mu_tk+sqrt(1-rho)*Z_tk+sqrt(rho)*U_t; rho=0 or.5.
+- Sign evidence L_tk=1+.5 sign(X_tk), valid conditionally on global past for
+  each still-null stream by symmetry and independence of innovation vectors
+  across time. No likelihood or moment-generating function is assumed.
+- Configurations, all run at each rho:
+  null: no changes;
+  simultaneous: first20 streams change at101;
+  staggered: first10 change at101 and next10 at201.
+- Postchange shifts alternate .45,.9 across these20 streams, so each group
+  of10 has five weak and five strong shifts. Remaining80 stay unchanged.
+- Primary figure: FDR and TDR curves for simultaneous changes, rowsrho0/.5.
+- Companion figure uses the same layout for staggered changes.
+- Primary numerical report is t=200 for simultaneous and t=300 for staggered,
+  100 observations after the last onset. Save all reporting times regardless.
+- Simulation seeds61000+10*rho_index+scenario_index, with scenarios in the
+  order null,simultaneous,staggered and rho_index0,1.
+
+Experiment B: heterogeneous, serially dependent count streams
+- K=20,100,500; independent streams, each temporally dependent.
+- Known intercepts a_k alternate .1 and1; lambda_tk=a_k+.3X_(t-1)k.
+- X_tk|global past ~Poisson(q_tk*lambda_tk), with q=1 before change and1.75
+  afterwards. q*.3=.525<1, so each regime has a finite stationary mean.
+- Initialize X=0 and generate200 null warmup observations. Retain the final
+  count as observed F0 history; reset only detector statistics for monitoring.
+- Evidence L_tk=exp(X_tk*log1.75-.75*lambda_tk) is the conditional likelihood
+  ratio; it has conditional expectation1 for every still-null stream.
+- For each K run null,10% changed,50% changed; firstm=proportion*K streams
+  change at101, giving equal numbers from each intercept group in every case.
+- Primary plot: ordinary FDR and TDR at t=200 against K (log-scaled x), separate
+  sparse/dense rows. This examines statistical performance as stream count
+  grows; it is not a computational-runtime benchmark.
+- Simulation seeds62000+10*K_index+scenario_index, with K in20,100,500 and
+  scenarios in the order null,sparse,dense.
+
+Total:6 heavy-tail configurations +9 count configurations =15*1500 runs.
+Both input constructions were checked with the theory agent before simulation.
+All summaries, generated plots and metadata are to be saved under filenames
+experiments/results/diverse*; no existing Gaussian simulations are rerun.
+
+Protocol alignment recorded BEFORE the second run (2026-10-06):
+- The main paper comparison now uses an ordinary finite-horizon error budget
+  q=.05 over H=400. To align with the main paper protocol, update these diverse experiments
+  by overriding alpha=.001 above with alpha=q/H=.000125.
+- This change aligns the manuscript protocol; it was not selected to improve
+  any outcome. Every original scenario, effect, horizon,1500 replications and
+  random-number seed is unchanged. All outcomes remain in the analysis.
+- Add SHEREF (fixed-time FDR), using SR/t e-BH at fixed q=.05; this comparator
+  does not change data generation. SHEREF was not in the initial three-method
+  run, despite an earlier planning discussion mentioning it as optional.
+- For BH, alpha=q/H implies FDR<=q for any stopping rule bounded by H.
+  Parallel SR/CUSUM instead control PFER<=q at such rules. SHEREF controls
+  FDR<=q at each deterministic time. These are different guarantees, while
+  plotted empirical ordinary FDR and TDR use the same definitions for all.
+- Preserve all initial-level outcomes, original design,metadata and source
+  in results/diverse_initial_level/; write aligned outputs at diverse* paths.
+- Send full updated numerical outcomes before selecting any combined main
+  figure. The complete original three plot layouts remain as supplements.

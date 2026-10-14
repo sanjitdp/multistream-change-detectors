@@ -1,0 +1,79 @@
+PRESPECIFIED REAL SENSOR ILLUSTRATION
+Recorded before reading sensor outcomes,2026-10-06.
+
+Source: Huerta,F.&Huerta,R.(2016),Gas sensors for home activity monitoring,
+UCI362,doi:10.24432/C5BS4F. source.zip has SHA256
+7c143b9f4402a8205ebe8072c2ce0967c25741f1865e23d650e981053294f395.
+Eight MOX resistance channels; intervention onset is time0 in hours.
+This is a MODEL-BASED illustration, not empirical validation of EOP or FDR.
+Recorded stimulus labels do not identify which individual sensors changed.
+Background home activity can contain unlabelled environmental changes.
+
+Chronological selection: include EVERY record dated2015-08-20 or later.
+Metadata identifies47 records:29 interventions and18 background recordings.
+Earlier records are not used for parameter tuning. Analysis settings are
+fixed here and will not be adjusted according to detection outcomes.
+
+Transform: natural logarithm of each of8 positive resistance readings.
+Bin into nonoverlapping5-second intervals relative to the recorded onset,
+using per-channel medians. Retain[-3600,300)seconds:360 training bins in
+[-3600,-1800) and420 monitoring bins in[-1800,300). Assign a bin's result
+to its right endpoint,so the first post-onset result is available at5seconds.
+Temperature and humidity are retained in source but not modelled.
+Rows with nonfinite time/resistance or nonpositive resistance are unavailable.
+
+Predeclared coverage exclusions, independent of evidence or outcomes:
+- fewer than300 usable adjacent training-bin pairs in ANY channel;
+- missing final training bin (needed as the preceding observation);
+- ANY missing monitoring bin in ANY channel;
+- for stimulus records,duration shorter than5min.
+Missing initial training bins are allowed; OLS uses only observed adjacent
+pairs. No interpolation, carry-forward, outcome-based exclusion or time
+window changes. Save all selected recordIDs and exclusions with reasons.
+
+For each record and channel, fit an AR(1) with intercept by OLS using only
+training-bin pairs. No clipping of fitted coefficient. Compute the median
+of these training prediction residuals and subtract it from subsequent
+residuals. For each monitoring bin, use the observed immediately preceding
+log-resistance,not a recursively simulated prediction. Report coefficients,
+training residual medians and held-out residual diagnostics.
+
+Evidence: lambda=.5 fixed in advance. L+ =1+.5sign(residual),
+L-=1-.5sign(residual). Directional SR recursions R+=(1+R+)L+ and
+R-=(1+R-)L-,both initially0. Two-sided evidence M=(R++R-)/2 is the
+exact mixture of the two likelihood products at each possible restart.
+K=8,H=420,q=.05,alpha=q/H. Compare current-set declarations:
+- e-d-BH(ours): sorted M,threshold K/(alpha*r);
+- ParallelSR: each M>=K/alpha;
+- Per-streamSR: each M>=1/alpha.
+All methods use identical fitted residuals and evidence. Their numerical
+calibrations are nominal: residual symmetry conditional on the full past
+is not established by OLS,median centering or5-second aggregation.
+Accordingly NO finite-sample error guarantee is asserted for this dataset.
+
+Metrics retained for EVERY included record and method:
+- any alert during30min before the recorded onset;
+- any alert during the complete35min monitoring window;
+- any current alert in the first5min after the onset;
+- first post-onset alert delay,conditional on its existence,and nondetection;
+- first post-onset alert among records without any pre-onset alert,with
+  method-specific eligible denominators and nondetection counts;
+- fraction of8 channels currently flagged at every monitoring bin.
+For background records,time0 is only a reference time,not an intervention.
+Report background alert proportions and pre-onset alert proportions as such,
+not sensor-level FDR,TDR,or certified false-positive rates.
+
+Diagnostics per channel/record on the held-out PRE-onset residuals:
+positive,negative and zero sign proportions;mean sign (sign imbalance);
+lag1 residual and sign autocorrelation. These diagnose possible failures
+of the conditional-symmetry working model,not proof of validity if small.
+
+Plots fixed in advance: (1) background records with any alert over35min,
+and intervention detection by5min among records without a pre-onset alert,
+with counts/denominators and '(ours)' label; (2) current fraction of channels
+flagged over time,separately for wine,banana and background. Allthree methods
+and allthree classes retained. Recordings may be dependent or overlapping;
+report counts and descriptive fractions without independent-binomial CIs.
+Persist source provenance,binneddata,recordIDs,coefficients,diagnostics,
+per-record outcomes,and time curves. If diagnostics or background alerts
+are poor,recommend an appendix cautionary illustration;retain the results.

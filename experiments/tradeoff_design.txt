@@ -1,0 +1,71 @@
+PRE-SPECIFIED CROSS-STREAM ERROR / IDENTIFICATION COMPARISON
+Recorded before outcomes were simulated, 2026-10-06.
+
+Purpose: compare methods that all report a subset of the same streams.
+The main figure contrasts global-null error with identification of genuine
+changes. No global-alarm-only procedure is treated as an identification rule.
+
+DGP: K=100 independent Gaussian streams with unit variance. H=400, change
+at observation101, known positive mean shift mu=.5. Configurations m=0,10,50
+changed streams; m=0 is global null, others are partial nulls. 4000 independent
+replications per configuration. Seeds 61006200+m. Same observations supplied
+to all methods within each replication; different seeds across configurations.
+Use exact known-model likelihood factors exp(mu X-mu^2/2) and SR recursion.
+No empirical threshold tuning or selecting cases after viewing outcomes.
+
+q=.05. Main figure includes these three methods:
+1. e-d-BH (ours), alpha=q/H, rank-r threshold K H/(q r).
+   EOP implies FDR<=q at EVERY reporting time tau<=H.
+2. Parallel SR, threshold K H/q for each stream, i.e. e-d-Bonferroni.
+   EOP implies PFER<=q (and FWER<=q) at EVERY tau<=H.
+3. Per-stream SR, threshold H/q for each stream.
+   For each stream separately, probability of a false alarm byH<=q;
+   this does not impose a q budget on errors across the whole family.
+The methods have a common numerical error budget, but different error
+criteria. The comparison must say this explicitly, not call them matched
+FDR, matched FWER or matched achieved ARL procedures.
+
+An additional fixed-time benchmark is reported in the complete tables:
+4. SR/t e-BH (SHEREF), fixed-time levelq, rank-r threshold Kt/(q r).
+   Guarantees fixed-time FDR<=q, not arbitrary-stopping-time FDR<=q.
+All four methods and all configurations remain in machine-readable results.
+SHEREF is omitted from the main figure to keep its distinct stopping-time
+target clear; its outcomes are retained in a separate supplemental figure.
+
+Practical reporting rules (no use of true changed-stream identities):
+- first time>=1 stream is currently declared, capped atH;
+- first time>=10 streams are currently declared, capped atH;
+- deterministicH.
+At each report: FDR=mean FDP, FWER=probability any false declaration,
+PFER=mean false count, reported-set size, TDR=proportion of already changed
+streams declared (zero beforenu), stopping time, and raw true count.
+Under global null FDR at the first-report rule is exactly probability of
+any declaration byH. Detector decisions are current sets, not permanent
+unions; capped reporting uses the CURRENT set atH.
+
+Identification performance: current TDR at each time, plus first post-change
+time when>=80% and100% of the changed streams are simultaneously declared.
+These are oracle diagnostics for an ongoing monitoring rule, not practical
+stopping rules and not conditional on no earlier false alarm. Nondetections
+are assigned timeH+1; report restricted mean delay AND nondetection fraction.
+
+Main figure, fixed in advance: panel(a) global-null probability of any
+declaration byH with q=.05 reference, panel(b) dense m=50 current true-discovery
+fraction versus post-change observation for the three main methods. The
+identification panel shows first180 post-change observations for readability;
+the entire300-observation trajectory is saved. A companion figure shows both
+m=10 andm=50 trajectories and allfour methods; all reporting-rule results are
+saved irrespective of which method performs best.
+
+Uncertainty: independent replications are sampling units, including all
+streams inside each replicate. Plot +/-1.96 Monte Carlo SE (clipped to[0,1]
+for probabilities). These are simulation errors, not inferential intervals
+for unknown model parameters or simultaneous confidence bands. Retain paired
+replicate-level results and exact seeds for reanalysis.
+
+Interpretation to assess rather than assume: BH may identify many changes
+sooner than multiplicity-adjusted parallel charts; per-stream thresholds
+may be faster but incur substantial family-level false-alarm probability.
+SHEREF's target must be distinguished at fixed versus adaptive reports.
+These finite simulations do not estimate the EOP supremum or establish
+universal delay superiority. No outcome-dependent redesign is authorized.

@@ -1,0 +1,89 @@
+External identification comparison: protocol fixed before simulation
+2026-10-06
+
+Question. Compare the error and content of the FIRST reported set, using the
+same observed data and reporting rule for every procedure. This does not
+identify fixed-time guarantees with stopping-time guarantees, or Bayesian
+prior-averaged guarantees with guarantees for fixed changepoint configurations.
+
+Data: K=100 independent streams, independent observations over time conditional
+on changepoints. X_tk ~ N(0,1) before xi_k and N(mu,1) at and after xi_k, mu=.5.
+H=400; xi is the FIRST postchange observation. 3000 paired repetitions per case.
+All likelihoods, parameters and priors are known, with no estimation phase.
+Cases, retained regardless of outcomes:
+  null: xi_k=infinity for every k;
+  m10_n101, m50_n101, m10_n251, m50_n251: first m streams change at nu;
+  prior: independently P(xi=infinity)=.5, and conditional on a finite change,
+         xi is geometric on 1,2,... with hazard .01.
+Seeds: 62106000+i for the cases in the order above. numpy.default_rng.
+
+Rules, all initialized at zero and run from observation 1:
+  BH: e-d-BH (ours), SR R_t=(1+R_(t-1))*L_t, alpha=q/H, q=.05.
+  Bonf: e-d-Bonferroni (ours), same SR, threshold K/alpha.
+  GL: Gandy--Lau (2013), Algorithm 2 with ordinary BH at q=.05 each time.
+  GL_time: same algorithm with q/H each time; labeled a time-adjusted adaptation.
+  MD: Chen--Zhang--Poor (2020) MD-FDR, q=.05, posterior odds under the prior above.
+  LFDR: Lu--Chen--Li (2022) posterior LFDR selector, q=.05, same prior.
+Log L_t = mu X_t - mu^2/2. Bayesian selectors use bayesian_methods.py; before
+the first report all streams remain active, so no removal or union convention
+enters this comparison. Neither Bayesian rule is compared using an invented
+continuing union of declarations.
+
+Gandy--Lau statistic: S_t=round_grid(min(20,max(0,S_(t-1)+log L_t))).
+Grid {0,.025,...,20}, 801 states, rounding to nearest grid point. Continuous
+increments have probability zero of landing at midpoint ties. The null transition
+probabilities integrate N(-mu^2/2,mu^2) over the exact rounding bins, including
+the two infinite end bins. The null distribution is propagated from S_0=0 by
+matrix multiplication and inclusive p_t(s)=P_0(S_t>=s). These are exact tails
+for the specified rounded chart, up to floating-point arithmetic, not an
+approximation to an unrounded chart. Before any main-study observations were
+generated, the initial h=10 choice was replaced with h=20 for BOTH GL rules.
+The analytic reason is to resolve q/(KH)=1.25e-6 for the time-adjusted rule:
+log(KH/q)=13.59 is below 20 but above 10. The code checks that the minimum
+finite-chain null tail at H is below q/(KH) before main simulation. A ceiling
+primarily helps when streams return to the null; these permanent-change cases
+have no such return. This amendment prevents an arbitrary ceiling from
+handicapping the adjusted comparison. No outcome-based tuning is planned.
+
+Primary report time for each method: first t<=H with a nonempty set; H if no
+report, retaining an empty reported set when there is no report. For computational
+bookkeeping, the raw first_time is H+1 for no report. Truth at reporting time is
+xi<=t. Primary metrics: FDR=mean V/max(1,R), PFER=mean V, mean true count,
+TDR=mean true_count/max(1,number already changed), probability of any false
+declaration, mean report size, no-report probability, and prechange-report
+probability. Zero TDR for a prechange report or no report. For fixed alternatives
+delay is report_time-nu+1, conditional on no report before nu, capped at H-nu+1
+with no reports assigned this cap; also report conditional delay among observed
+postchange reports and its denominator. In the random-prior case the reference
+onset is the earliest xi in that repetition; this delay has a different meaning
+and is not pooled with the fixed-onset cases. Null delays are undefined.
+
+Secondary: current-set FDR/TDR for BH, Bonf, GL, GL_time at every fifth time and
+time 1. No permanent union is used. Native GL has a fixed-time guarantee only;
+q/H adaptation has FDR<=q at any stopping time bounded by H by summing fixed-time
+bounds. BH has that same bounded-stopping FDR guarantee; Bonf bounds PFER and
+hence FDR. MD/LFDR have first-report Bayesian FDR<=q under the correct-prior
+case; fixed/null configurations stress the assumed prior rather than contradict
+those guarantees. All procedures' achieved FDR uses the SAME reported-set metric.
+
+Uncertainty: standard errors are sample SD/sqrt(n) across paired independent
+repetitions. Conditional metrics report the actual conditioning sample size.
+Descriptive intervals, if plotted, are +/-1.96 MC SE clipped to the feasible
+range; a zero MC SE from zero rare events is not proof of zero error. Raw per-run
+outcomes, changepoints, seeds, source/design hashes, CSV summaries and curves
+will be retained. No curve/setting discarded based on favorability.
+
+Validation before main simulation: transition rows nonnegative and sum to one;
+direct one-step Gaussian bin probabilities and independent direct-CDF recursion;
+100000 independently generated null charts through H, seed 62116999, compare
+empirical distributions at 1,20,100,200,400 to exact finite-chain CDF and tail
+probabilities. Check exact discrete p-value superuniformity at BH cutoffs and
+compare vectorized BH/e-BH selectors with literal sorted selectors including
+ties/empty/all sets. Bayesian module has its own independently checked prior,
+posterior and selection validation. Main fixed-time null results provide a
+separate check on actual family error. No polished main figure chosen until
+the complete numerical readout has been sent to the parent.
+
+Sources: Gandy--Lau arXiv:1204.4333, Algorithm 2 and Sections 2--4;
+Chen--Zhang--Poor (2020), https://par.nsf.gov/servlets/purl/10194694;
+Lu--Chen--Li arXiv:2206.08435, Algorithms 3--4.
